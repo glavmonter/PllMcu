@@ -7,7 +7,7 @@
 #include "boost/sml.hpp"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "MainTaskAlt.h"
+#include "MainTask.h"
 #include "etl/vector.h"
 #include "config.h"
 #include "hardware.h"
@@ -29,25 +29,10 @@ UNUSED(argv);
     SEGGER_RTT_ConfigUpBuffer(0, NULL, NULL, 0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
     SEGGER_RTT_printf(0, "\n\n======================== Inductive Loop Controller ===========================\n");
 
-
     HAL_Init();
     MX_GPIO_Init();
     MX_SPI_Init();
     MX_USART_Init();
-
-    if (argc == 0xA5) {
-        // Double reset start
-        HAL_FLASHEx_DATAEEPROM_Unlock();
-        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_BASE_ADDR + 0, 0x00);
-        HAL_FLASHEx_DATAEEPROM_Lock();
-
-    } else {
-        if (ReadEEPROM<uint32_t>(0) != 0xDEADBEEF) {
-            HAL_FLASHEx_DATAEEPROM_Unlock();
-            HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_BASE_ADDR + 0, 0xDEADBEEF);
-            HAL_FLASHEx_DATAEEPROM_Lock();
-        }
-    }
 
     StartMainTask();
     vTaskStartScheduler();
@@ -61,10 +46,6 @@ UNUSED(argv);
 extern "C" HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
     return HAL_OK;
 }
-
-
-
-
 
 void SystemClock_Config() {
     LL_FLASH_SetLatency(LL_FLASH_LATENCY_1);
@@ -113,97 +94,10 @@ LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
     LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
     LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
 
-    LL_GPIO_ResetOutputPin(CONTROL0_PORT, CONTROL0_PIN);
-    LL_GPIO_ResetOutputPin(CONTROL1_PORT, CONTROL1_PIN);
-    LL_GPIO_SetOutputPin(BAR_PORT, BAR0_o_PIN | BAR1_o_PIN | BAR2_o_PIN);
-
-    // TODO отладочный трансформатор 13 витков первичная, 33 витка вторичная, работает только при SEL2 = 0
-//    LL_GPIO_ResetOutputPin(SEL_PORT, SEL0_C_o_PIN | SEL1_B_o_PIN | SEL2_A_o_PIN);
-    LL_GPIO_ResetOutputPin(SEL0_C_o_PORT, SEL0_C_o_PIN);
-    LL_GPIO_ResetOutputPin(SEL1_B_o_PORT, SEL1_B_o_PIN);
-    LL_GPIO_ResetOutputPin(SEL2_A_o_PORT, SEL2_A_o_PIN);
-
-    LL_GPIO_ResetOutputPin(RELAY_PORT, RELAY0_o_PIN | RELAY1_o_PIN | RELAY2_o_PIN);
     LL_GPIO_SetOutputPin(SPI1_CS_PORT, SPI1_CS_PIN);
-
-    GPIO_InitStruct.Pin = BAR0_o_PIN | BAR1_o_PIN | BAR2_o_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-    LL_GPIO_Init(BAR_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = SEL0_C_o_PIN;
-    LL_GPIO_Init(SEL0_C_o_PORT, &GPIO_InitStruct);
-    GPIO_InitStruct.Pin = SEL1_B_o_PIN;
-    LL_GPIO_Init(SEL1_B_o_PORT, &GPIO_InitStruct);
-    GPIO_InitStruct.Pin = SEL2_A_o_PIN;
-    LL_GPIO_Init(SEL2_A_o_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = RELAY0_o_PIN | RELAY1_o_PIN | RELAY2_o_PIN;
-    LL_GPIO_Init(RELAY_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = SPI1_CS_PIN;
     LL_GPIO_Init(SPI1_CS_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = CONTROL0_PIN;
-    LL_GPIO_Init(CONTROL0_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = CONTROL1_PIN;
-    LL_GPIO_Init(CONTROL1_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = SW0_i_PIN | SW1_i_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-    LL_GPIO_Init(SW_PORT, &GPIO_InitStruct);
-
-#if FREQ_MODE == FREQ_MODE_ONE_TIMER
-    // TIM2 Channels, pulse generator
-    LL_GPIO_SetOutputPin(TIM2_PORT, TIM2_CH1_PIN | TIM2_CH2_PIN | TIM2_CH3_PIN);
-    GPIO_InitStruct.Pin = TIM2_CH1_PIN | TIM2_CH2_PIN | TIM2_CH3_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_2;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(TIM2_PORT, &GPIO_InitStruct);
-#endif
-
-#if FREQ_MODE == FREQ_MODE_TWO_TIMER or FREQ_MODE == FREQ_MODE_DMA
-    LL_GPIO_SetOutputPin(TIM2_PORT, TIM2_CH1_PIN | TIM2_CH2_PIN | TIM2_CH3_PIN);
-    GPIO_InitStruct.Pin = TIM2_CH1_PIN | TIM2_CH2_PIN | TIM2_CH3_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(TIM2_PORT, &GPIO_InitStruct);
-#endif
-
-#if FREQ_MODE == FREQ_MODE_DMA
-    GPIO_InitStruct.Pin = TIM2_CH4_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = TIM2_GPIO_AF;
-    LL_GPIO_Init(TIM2_PORT, &GPIO_InitStruct);
-#endif
-
-#if (FREQ_MODE == FREQ_MODE_TWO_TIMER) or (FREQ_MODE == FREQ_MODE_ONE_TIMER)
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Pin = TIM21_CH2_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-    GPIO_InitStruct.Alternate = TIM21_GPIO_AF;
-    LL_GPIO_Init(TIM21_CH2_PORT, &GPIO_InitStruct);
-#endif
-
-
-#if FREQ_MODE == FREQ_MODE_DMA
-    LL_GPIO_ResetOutputPin(TEST_PIN_PORT, TEST_PIN);
-    GPIO_InitStruct.Pin = TEST_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    LL_GPIO_Init(TEST_PIN_PORT, &GPIO_InitStruct);
-#endif
 
     // SPI1 MOSI and SCK
     GPIO_InitStruct.Pin = SPI1_MOSI_PIN | SPI1_SCK_PIN;
@@ -225,26 +119,6 @@ LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin = MODBUS_RX_PIN;
     GPIO_InitStruct.Alternate = MODBUS_RX_GPIO_AF;
     LL_GPIO_Init(MODBUS_RX_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = MODBUS_DE_PIN;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
-    GPIO_InitStruct.Alternate = MODBUS_DE_GPIO_AF;
-    LL_GPIO_Init(MODBUS_DE_PORT, &GPIO_InitStruct);
-
-#if HW_PLATFORM == PLATFORM_CHINA
-    GPIO_InitStruct.Pin = CONTROL0_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-    LL_GPIO_Init(CONTROL0_PORT, &GPIO_InitStruct);
-
-    // Control point XN3, TIM21_CH1 out
-    GPIO_InitStruct.Pin = CONTROL1_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_6;
-    LL_GPIO_Init(CONTROL1_PORT, &GPIO_InitStruct);
-#endif
 }
 
 static void MX_USART_Init() {
@@ -340,8 +214,6 @@ static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 }
 /*-----------------------------------------------------------*/
 
-
-
 void vApplicationTickHook() {
     HAL_IncTick();
 }
@@ -351,11 +223,7 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
     for (;;) {}
 }
 
-
 void vApplicationMallocFailedHook() {
     SEGGER_RTT_printf(0, "[ERR ] Malloc failed\n");
     for (;;) {}
 }
-
-
-

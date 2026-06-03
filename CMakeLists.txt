@@ -76,13 +76,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSE_RTT -DUSE_FULL_ASSERT"
 set(CMAKE_ASM_FLAGS "-x assembler-with-cpp")
 
 set(PROJECT_SRC
-        "Core/src/utils.cpp"
         "Core/src/common.cpp"
-        "Core/src/LoopController.cpp"
         "Core/src/main.cpp"
-        "Core/src/adc.cpp"
-        "Core/src/MainTaskAlt.cpp"
-        "Core/src/NeedleFilter.cpp"
+        "Core/src/MainTask.cpp"
         "Core/src/stm32l0xx_it.c"
         "Core/src/syscalls.c"
         "Core/src/system_stm32l0xx.c"

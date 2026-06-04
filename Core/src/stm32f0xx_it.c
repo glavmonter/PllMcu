@@ -24,10 +24,8 @@ void HardFault_Handler() {
 }
 
 
-
-
 /******************************************************************************/
-/* STM32L0xx Peripheral Interrupt Handlers                                    */
+/* STM32F0xx Peripheral Interrupt Handlers                                    */
 /* Add here the Interrupt Handlers for the used peripherals.                  */
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32l0xx.s).                    */

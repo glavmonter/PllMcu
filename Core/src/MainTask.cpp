@@ -38,7 +38,7 @@ void MainTask_(void *pvParameters) {
 
     uint32_t ulNotifyValue = 0;
     for (;;) {
-        auto event = xTaskNotifyWait(0, UINT32_MAX, &ulNotifyValue, 1);
+        xTaskNotifyWait(0, UINT32_MAX, &ulNotifyValue, 1);
     }
 }
 

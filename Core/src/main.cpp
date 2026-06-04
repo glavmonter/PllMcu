@@ -4,7 +4,6 @@
 #include "SEGGER_RTT.h"
 
 #include "main.h"
-#include "boost/sml.hpp"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "MainTask.h"
@@ -15,26 +14,43 @@
 #include "common.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+void _putchar(char character) {
+    SEGGER_RTT_PutChar(0, character);
+}
+
+#ifdef __cplusplus
+}  
+#endif
+
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config();
 static void MX_GPIO_Init();
 static void MX_SPI_Init();
 static void MX_USART_Init();
 
+static void StartTask(void *pvParameters);
+constexpr size_t StartStackSize = configMINIMAL_STACK_SIZE * 1;
+static StackType_t ucStartStack[StartStackSize];
+static StaticTask_t xTCBTaskStart;
 
-int main(int argc, char *argv[]) {
-UNUSED(argv);
-
+int main(void) {
+    if (CONFIG_LOG_MAXIMUM_LEVEL > 0) {
+        SEGGER_RTT_ConfigUpBuffer(0, NULL, NULL, 0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
+    }
+    
     SystemClock_Config();
-    SEGGER_RTT_ConfigUpBuffer(0, NULL, NULL, 0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
-    SEGGER_RTT_printf(0, "\n\n======================== Inductive Loop Controller ===========================\n");
 
     HAL_Init();
     MX_GPIO_Init();
     MX_SPI_Init();
     MX_USART_Init();
 
-    StartMainTask();
+    //StartMainTask();
+    xTaskCreateStatic(StartTask, "Start", StartStackSize, nullptr, tskIDLE_PRIORITY, ucStartStack, &xTCBTaskStart);
+
     vTaskStartScheduler();
     for (;;) {
         __NOP();
@@ -42,6 +58,14 @@ UNUSED(argv);
     return 0;
 }
 
+void StartTask(void *pvParameters) {
+UNUSED(pvParameters);
+    StartMainTask();
+
+    for (;;) {
+        vTaskDelay(portMAX_DELAY);
+    }
+}
 
 extern "C" HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
     return HAL_OK;
@@ -119,12 +143,7 @@ static void MX_USART_Init() {
 
 
 static void MX_SPI_Init() {
-    /* USER CODE BEGIN SPI1_Init 0 */
-
-    /* USER CODE END SPI1_Init 0 */
-
     LL_SPI_InitTypeDef SPI_InitStruct = {0};
-
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
     /* Peripheral clock enable */
@@ -160,9 +179,6 @@ static void MX_SPI_Init() {
     GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
     LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    /* USER CODE BEGIN SPI1_Init 1 */
-
-    /* USER CODE END SPI1_Init 1 */
     /* SPI1 parameter configuration*/
     SPI_InitStruct.TransferDirection = LL_SPI_FULL_DUPLEX;
     SPI_InitStruct.Mode = LL_SPI_MODE_MASTER;
@@ -177,9 +193,6 @@ static void MX_SPI_Init() {
     LL_SPI_Init(SPI1, &SPI_InitStruct);
     LL_SPI_SetStandard(SPI1, LL_SPI_PROTOCOL_MOTOROLA);
     LL_SPI_EnableNSSPulseMgt(SPI1);
-    /* USER CODE BEGIN SPI1_Init 2 */
-
-    /* USER CODE END SPI1_Init 2 */
 }
 
 void Error_Handler() {

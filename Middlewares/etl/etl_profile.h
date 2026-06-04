@@ -1,0 +1,14 @@
+#ifndef __ETL_PROFILE_H__
+#define __ETL_PROFILE_H__
+
+
+
+#define ETL_CALLBACK_TIMER_USE_INTERRUPT_LOCK
+#define ETL_CALLBACK_TIMER_ENABLE_INTERRUPTS    void(0)
+#define ETL_CALLBACK_TIMER_DISABLE_INTERRUPTS   void(0)
+
+
+#define ETL_NO_CHECKS
+#define ETL_NO_STL
+
+#endif /* __ETL_PROFILE_H__ */

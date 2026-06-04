@@ -2,8 +2,8 @@
 #define INC_COMMON_H_
 
 #include <stdint.h>
-#include "etl/vector.h"
-#include "etl/function.h"
+#include <etl/vector.h>
+#include <etl/function.h>
 
 
 #define PIN_SET(port, pin)   do { port->BSRR = pin; } while (0)

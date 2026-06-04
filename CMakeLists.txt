@@ -67,7 +67,7 @@ include_directories(${HAL_LL_INC})
 include_directories(${FREERTORS_INC})
 include_directories(${APP_INC})
 
-set(COMMON_DEFINITIONS "-DSTM32L052xx -DUSE_HAL_DRIVER -DUSE_FULL_LL_DRIVER -DETL_NO_STL")
+set(COMMON_DEFINITIONS "-DSTM32F051x8 -DUSE_HAL_DRIVER -DUSE_FULL_LL_DRIVER -DETL_NO_STL")
 
 add_definitions(${COMMON_DEFINITIONS})
 
@@ -82,7 +82,7 @@ set(PROJECT_SRC
         "Core/src/stm32l0xx_it.c"
         "Core/src/syscalls.c"
         "Core/src/system_stm32l0xx.c"
-        "startup/startup_stm32l052xx.s"
+        "startup/startup_stm32f051x8.s"
     )
 
 set(PN "PllMcu${POSTFIX}")

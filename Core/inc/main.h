@@ -35,19 +35,17 @@ extern "C" {
 
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32l0xx_hal.h"
-#include "stm32l0xx_ll_system.h"
-#include "stm32l0xx_ll_gpio.h"
-#include "stm32l0xx_ll_exti.h"
-#include "stm32l0xx_ll_bus.h"
-#include "stm32l0xx_ll_cortex.h"
-#include "stm32l0xx_ll_rcc.h"
-#include "stm32l0xx_ll_utils.h"
-#include "stm32l0xx_ll_pwr.h"
-#include "stm32l0xx_ll_dma.h"
-#include "stm32l0xx_ll_spi.h"
-
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+#include "stm32f0xx_hal.h"
+#include "stm32f0xx_ll_system.h"
+#include "stm32f0xx_ll_gpio.h"
+#include "stm32f0xx_ll_exti.h"
+#include "stm32f0xx_ll_bus.h"
+#include "stm32f0xx_ll_cortex.h"
+#include "stm32f0xx_ll_rcc.h"
+#include "stm32f0xx_ll_utils.h"
+#include "stm32f0xx_ll_pwr.h"
+#include "stm32f0xx_ll_dma.h"
+#include "stm32f0xx_ll_spi.h"
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler();

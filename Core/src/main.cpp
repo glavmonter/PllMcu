@@ -1,6 +1,6 @@
 #include <cstring>
-#include "stm32l0xx_hal.h"
-#include "stm32l0xx_ll_usart.h"
+#include "stm32f0xx_hal.h"
+#include "stm32f0xx_ll_usart.h"
 #include "SEGGER_RTT.h"
 
 #include "main.h"
@@ -48,37 +48,43 @@ extern "C" HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
 }
 
 void SystemClock_Config() {
-    LL_FLASH_SetLatency(LL_FLASH_LATENCY_1);
-    while (LL_FLASH_GetLatency() != LL_FLASH_LATENCY_1) {}
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-    LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE1);
-    LL_RCC_HSE_Enable();
-    while (LL_RCC_HSE_IsReady() != 1) {}
+    /** Initializes the RCC Oscillators according to the specified parameters
+     * in the RCC_OscInitTypeDef structure.
+     */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+    RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL12;
+    RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
 
-    LL_RCC_LSI_Enable();
-    while (LL_RCC_LSI_IsReady() != 1) {}
+    /** Initializes the CPU, AHB and APB buses clocks
+     */
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                                |RCC_CLOCKTYPE_PCLK1;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
-#if HW_PLATFORM == PLATFORM_CHINA
-    LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLL_MUL_8, LL_RCC_PLL_DIV_3);
-#elif HW_PLATFORM == PLATFORM_EPCOS
-    LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLL_MUL_4, LL_RCC_PLL_DIV_2);
-#endif
-
-    LL_RCC_PLL_Enable();
-    while (LL_RCC_PLL_IsReady() != 1) {}
-
-    LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
-    LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_1);
-    LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
-    LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
-
-    while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL) {}
-
-    LL_SetSystemCoreClock(32000000);
-#ifdef MODBUS
-    LL_RCC_SetUSARTClockSource(LL_RCC_USART1_CLKSOURCE_PCLK2);
-#endif
-    LL_RCC_SetUSARTClockSource(LL_RCC_USART1_CLKSOURCE_PCLK2);
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
+    PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+    {
+        Error_Handler();
+    }
 }
 
 
@@ -88,37 +94,7 @@ void SystemClock_Config() {
   * @retval None
   */
 static void MX_GPIO_Init() {
-LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-    /* GPIO Ports Clock Enable */
-    LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
-    LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
-
-    LL_GPIO_SetOutputPin(SPI1_CS_PORT, SPI1_CS_PIN);
-
-    GPIO_InitStruct.Pin = SPI1_CS_PIN;
-    LL_GPIO_Init(SPI1_CS_PORT, &GPIO_InitStruct);
-
-    // SPI1 MOSI and SCK
-    GPIO_InitStruct.Pin = SPI1_MOSI_PIN | SPI1_SCK_PIN;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = SPI1_GPIO_AF;
-    LL_GPIO_Init(SPI1_GPIO_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-
-    GPIO_InitStruct.Pin = MODBUS_TX_PIN;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-    GPIO_InitStruct.Alternate = MODBUS_TX_GPIO_AF;
-    LL_GPIO_Init(MODBUS_TX_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = MODBUS_RX_PIN;
-    GPIO_InitStruct.Alternate = MODBUS_RX_GPIO_AF;
-    LL_GPIO_Init(MODBUS_RX_PORT, &GPIO_InitStruct);
 }
 
 static void MX_USART_Init() {
@@ -143,13 +119,54 @@ static void MX_USART_Init() {
 
 
 static void MX_SPI_Init() {
-LL_SPI_InitTypeDef SPI_InitStruct = {0};
+    /* USER CODE BEGIN SPI1_Init 0 */
 
-    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
+    /* USER CODE END SPI1_Init 0 */
 
+    LL_SPI_InitTypeDef SPI_InitStruct = {0};
+
+    LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    /* Peripheral clock enable */
+    LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_SPI1);
+
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+    /**SPI1 GPIO Configuration
+     PA5   ------> SPI1_SCK
+    PA6   ------> SPI1_MISO
+    PA7   ------> SPI1_MOSI
+    */
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_5;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
+    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_6;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
+    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_7;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
+    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    /* USER CODE BEGIN SPI1_Init 1 */
+
+    /* USER CODE END SPI1_Init 1 */
+    /* SPI1 parameter configuration*/
     SPI_InitStruct.TransferDirection = LL_SPI_FULL_DUPLEX;
     SPI_InitStruct.Mode = LL_SPI_MODE_MASTER;
-    SPI_InitStruct.DataWidth = LL_SPI_DATAWIDTH_8BIT;
+    SPI_InitStruct.DataWidth = LL_SPI_DATAWIDTH_4BIT;
     SPI_InitStruct.ClockPolarity = LL_SPI_POLARITY_LOW;
     SPI_InitStruct.ClockPhase = LL_SPI_PHASE_1EDGE;
     SPI_InitStruct.NSS = LL_SPI_NSS_SOFT;
@@ -159,8 +176,10 @@ LL_SPI_InitTypeDef SPI_InitStruct = {0};
     SPI_InitStruct.CRCPoly = 7;
     LL_SPI_Init(SPI1, &SPI_InitStruct);
     LL_SPI_SetStandard(SPI1, LL_SPI_PROTOCOL_MOTOROLA);
-    LL_SPI_Enable(SPI1);
+    LL_SPI_EnableNSSPulseMgt(SPI1);
+    /* USER CODE BEGIN SPI1_Init 2 */
 
+    /* USER CODE END SPI1_Init 2 */
 }
 
 void Error_Handler() {

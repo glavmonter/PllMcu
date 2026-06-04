@@ -1,7 +1,7 @@
 #ifndef INC_TEMPLATES_H_
 #define INC_TEMPLATES_H_
 
-#include "stm32l0xx_hal.h"
+#include "stm32f0xx_hal.h"
 
 #define EEPROM_BASE_ADDR    0x08080000
 

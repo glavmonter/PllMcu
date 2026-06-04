@@ -6,7 +6,7 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/toolchain-arm-none-e
 list(APPEND CMAKE_MODULE_PATH cmake)
 include(cmake/functions.cmake)
 
-SET(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/STM32L052C6_FLASH.ld")
+SET(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/STM32F051XX_FLASH.ld")
 
 set(FPU_FLAGS "")
 
@@ -33,13 +33,14 @@ endif()
 
 # Исходные коды библиотек
 set(HAL_LL_SRC
-        "Drivers/STM32L0xx_HAL_Driver/src/stm32l0xx_hal.c"
-        "Drivers/STM32L0xx_HAL_Driver/src/stm32l0xx_hal_flash.c"
-        "Drivers/STM32L0xx_HAL_Driver/src/stm32l0xx_hal_flash_ex.c"
-        "Drivers/STM32L0xx_HAL_Driver/src/stm32l0xx_ll_gpio.c"
-        "Drivers/STM32L0xx_HAL_Driver/src/stm32l0xx_ll_spi.c"
-        "Drivers/STM32L0xx_HAL_Driver/src/stm32l0xx_ll_utils.c"
-        "Drivers/STM32L0xx_HAL_Driver/src/stm32l0xx_ll_adc.c"
+        "Drivers/STM32F0xx_HAL_Driver/src/stm32f0xx_hal.c"
+        "Drivers/STM32F0xx_HAL_Driver/src/stm32f0xx_hal_rcc.c"
+        "Drivers/STM32F0xx_HAL_Driver/src/stm32f0xx_hal_rcc_ex.c"
+        "Drivers/STM32F0xx_HAL_Driver/src/stm32f0xx_hal_flash.c"
+        "Drivers/STM32F0xx_HAL_Driver/src/stm32f0xx_hal_flash_ex.c"
+        "Drivers/STM32F0xx_HAL_Driver/src/stm32f0xx_ll_gpio.c"
+        "Drivers/STM32F0xx_HAL_Driver/src/stm32f0xx_ll_spi.c"
+        "Drivers/STM32F0xx_HAL_Driver/src/stm32f0xx_ll_utils.c"
     )
 
 set(SEGGER_SRC
@@ -57,8 +58,8 @@ set(FREERTOS_SRC
 
 set(COMMON_SRC ${HAL_LL_SRC} ${SEGGER_SRC} ${FREERTOS_SRC})
 
-set(HAL_LL_INC "Drivers/STM32L0xx_HAL_Driver/inc")
-set(CMSIS_INC "Drivers/CMSIS/Include" "Drivers/CMSIS/Device/ST/STM32L0xx/Include")
+set(HAL_LL_INC "Drivers/STM32F0xx_HAL_Driver/inc")
+set(CMSIS_INC "Drivers/CMSIS/Include" "Drivers/CMSIS/Device/ST/STM32F0xx/Include")
 set(FREERTORS_INC "Middlewares/Third_Party/FreeRTOS/include" "Middlewares/Third_Party/FreeRTOS/portable/GCC/ARM_CM0")
 set(APP_INC "Core/inc")
 
@@ -79,9 +80,10 @@ set(PROJECT_SRC
         "Core/src/common.cpp"
         "Core/src/main.cpp"
         "Core/src/MainTask.cpp"
-        "Core/src/stm32l0xx_it.c"
+        "Core/src/stm32f0xx_it.c"
         "Core/src/syscalls.c"
-        "Core/src/system_stm32l0xx.c"
+        "Core/src/system_stm32f0xx.c"
+        "Core/src/stm32f0xx_hal_msp.c"
         "startup/startup_stm32f051x8.s"
     )
 

@@ -10,3 +10,8 @@ set(LOGGING_SRC
     logging/log.cpp 
     logging/log_buffers.cpp)
 add_library(rtt_logging STATIC ${LOGGING_SRC})
+
+
+set(FREERTOS_CLI_SRC
+    FreeRTOS-Plus-CLI/FreeRTOS_CLI.c)
+add_library(freertos_cli STATIC ${FREERTOS_CLI_SRC})

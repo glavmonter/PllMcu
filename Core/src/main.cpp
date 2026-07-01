@@ -119,25 +119,43 @@ void SystemClock_Config() {
   * @retval None
   */
 static void MX_GPIO_Init() {
+    LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+
+    /**USART1 GPIO Configuration
+    PB6   ------> USART1_TX
+    PB7   ------> USART1_RX
+    */
+    GPIO_InitStruct.Pin = SERIAL_TX_PIN;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    GPIO_InitStruct.Alternate = SERIAL_TX_GPIO_AF;
+    LL_GPIO_Init(SERIAL_TX_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = SERIAL_RX_PIN;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    GPIO_InitStruct.Alternate = SERIAL_RX_GPIO_AF;
+    LL_GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStruct);
 }
 
 static void MX_USART_Init() {
     __HAL_RCC_USART1_CLK_ENABLE();
 
-    LL_USART_SetTransferDirection(MODBUS_UART, LL_USART_DIRECTION_TX_RX);
-    LL_USART_ConfigCharacter(MODBUS_UART, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
-    LL_USART_SetHWFlowCtrl(MODBUS_UART, LL_USART_HWCONTROL_NONE);
-    LL_USART_SetOverSampling(MODBUS_UART, LL_USART_OVERSAMPLING_16);
-    LL_USART_SetBaudRate(MODBUS_UART, SystemCoreClock, LL_USART_OVERSAMPLING_16, 256000);
-
-    LL_USART_EnableDEMode(MODBUS_UART);
-    LL_USART_SetDESignalPolarity(MODBUS_UART, LL_USART_DE_POLARITY_HIGH);
-    LL_USART_SetDEAssertionTime(MODBUS_UART, 8);
-    LL_USART_SetDEDeassertionTime(MODBUS_UART, 8);
-    LL_USART_ConfigAsyncMode(MODBUS_UART);
-    LL_USART_Enable(MODBUS_UART);
-
+    LL_USART_SetTransferDirection(SERIAL_UART, LL_USART_DIRECTION_TX_RX);
+    LL_USART_ConfigCharacter(SERIAL_UART, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
+    LL_USART_SetHWFlowCtrl(SERIAL_UART, LL_USART_HWCONTROL_NONE);
+    LL_USART_SetOverSampling(SERIAL_UART, LL_USART_OVERSAMPLING_16);
+    LL_USART_SetBaudRate(SERIAL_UART, SystemCoreClock, LL_USART_OVERSAMPLING_16, 9600);
+    
+    LL_USART_ConfigAsyncMode(SERIAL_UART);
+    LL_USART_Enable(SERIAL_UART);
+    
     NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 6, 0));
     NVIC_EnableIRQ(USART1_IRQn);
 }

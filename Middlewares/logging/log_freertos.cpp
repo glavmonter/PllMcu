@@ -3,6 +3,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <FreeRTOS.h>
+#include <semphr.h>
 #include "compiler.h"
 #include "rtt_log.h"
 #include "rtt_log_private.h"
@@ -23,36 +24,34 @@ static StaticSemaphore_t s_log_mutex_static;
 
 void rtt_log_impl_lock()
 {
-    return;
-
-//     if (unlikely(!s_log_mutex)) {
-// #if (configSUPPORT_STATIC_ALLOCATION == 1)
-//         s_log_mutex = xSemaphoreCreateMutexStatic(&s_log_mutex_static);
-// #else
-//         s_log_mutex = xSemaphoreCreateMutex();
-// #endif
-//     }
-//     if (unlikely(xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED)) {
-//         return;
-//     }
-//     xSemaphoreTake(s_log_mutex, portMAX_DELAY);
+    if (unlikely(!s_log_mutex)) {
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+        s_log_mutex = xSemaphoreCreateMutexStatic(&s_log_mutex_static);
+#else
+        s_log_mutex = xSemaphoreCreateMutex();
+#endif
+    }
+    if (unlikely(xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED)) {
+        return;
+    }
+    xSemaphoreTake(s_log_mutex, portMAX_DELAY);
 }
 
 bool rtt_log_impl_lock_timeout()
 {
-//     if (unlikely(!s_log_mutex)) {
-// #if (configSUPPORT_STATIC_ALLOCATION == 1)
-//         s_log_mutex = xSemaphoreCreateMutexStatic(&s_log_mutex_static);
-// #else
-//         s_log_mutex = xSemaphoreCreateMutex();
-// #endif
-//     }
-//     if (unlikely(xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED)) {
-//         return true;
-//     }
-//     if (xPortIsInsideInterrupt())
-//         return pdTRUE;
-//     return xSemaphoreTake(s_log_mutex, MAX_MUTEX_WAIT_TICKS) == pdTRUE;
+    if (unlikely(!s_log_mutex)) {
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+        s_log_mutex = xSemaphoreCreateMutexStatic(&s_log_mutex_static);
+#else
+        s_log_mutex = xSemaphoreCreateMutex();
+#endif
+    }
+    if (unlikely(xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED)) {
+        return true;
+    }
+    if (xPortIsInsideInterrupt())
+        return pdTRUE;
+    return xSemaphoreTake(s_log_mutex, MAX_MUTEX_WAIT_TICKS) == pdTRUE;
 }
 
 void rtt_log_impl_unlock()
@@ -116,6 +115,5 @@ uint32_t rtt_log_timestamp(void)
 
 uint32_t rtt_log_early_timestamp(void)
 {
-    uint64_t cnt = (uint64_t)DWT->CYCCNT * 1000;
-    return cnt / (uint64_t)SystemCoreClock;
+    return 0;
 }

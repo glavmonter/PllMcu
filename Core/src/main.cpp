@@ -13,6 +13,7 @@
 #include "templates.h"
 #include "common.h"
 
+#include <rtt_log.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,6 +40,7 @@ static StaticTask_t xTCBTaskStart;
 int main(void) {
     if (CONFIG_LOG_MAXIMUM_LEVEL > 0) {
         SEGGER_RTT_ConfigUpBuffer(0, NULL, NULL, 0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
+        rtt_log_set_vprintf([](const char *sFormat, va_list va) { return SEGGER_RTT_vprintf(0, sFormat, &va); });
     }
     
     SystemClock_Config();
@@ -48,7 +50,6 @@ int main(void) {
     MX_SPI_Init();
     MX_USART_Init();
 
-    //StartMainTask();
     xTaskCreateStatic(StartTask, "Start", StartStackSize, nullptr, tskIDLE_PRIORITY, ucStartStack, &xTCBTaskStart);
 
     vTaskStartScheduler();
@@ -199,24 +200,6 @@ void Error_Handler() {
     __disable_irq();
     while (true) { }
 }
-
-
-
-#ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t *file, uint32_t line) {
-    __disable_irq();
-    for (;;) {
-        __NOP();
-    }
-}
-#endif /* USE_FULL_ASSERT */
 
 
 /* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an

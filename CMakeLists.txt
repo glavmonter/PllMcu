@@ -71,7 +71,7 @@ set(MIDDLEWARES_INC "Middlewares")
 set(RINGBUFFER_INC "Middlewares/RingBuffer")
 set(PRINTF_INC "Middlewares/printf")
 set(SEGGER_INC "Middlewares/SEGGER")
-
+set(LOGGING_INC "Middlewares/logging" "Middlewares/logging/include")
 set(APP_INC "Core/inc")
 
 include_directories(${CMSIS_INC})
@@ -81,6 +81,7 @@ include_directories(${FREERTOS}/portable/GCC/ARM_CM0)
 include_directories(${APP_INC})
 include_directories(${SEGGER_INC})
 include_directories(${PRINTF_INC})
+include_directories(${LOGGING_INC})
 include_directories(${MIDDLEWARES_INC})
 include_directories(${RINGBUFFER_INC})
 include_directories(${MIDDLEWARES_INC})
@@ -106,6 +107,7 @@ set(PROJECT_SRC
         "Core/src/MainTask.cpp"
         "Core/src/stm32f0xx_it.c"
         "Core/src/stm32f0xx_hal_msp.c"
+        "Core/src/errors.cpp"
     )
 
 
@@ -121,4 +123,4 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Core/inc/FreeRTOSConfig.h.in
 set(PN "PllMcu${POSTFIX}")
 add_executable(${PN}.elf ${PROJECT_SRC} ${COMMON_SRC})
 set_options(${PN} ${LINKER_SCRIPT})
-target_link_libraries(${PN}.elf PRIVATE spl rtt printf freertos)
+target_link_libraries(${PN}.elf PRIVATE spl rtt_logging printf freertos)

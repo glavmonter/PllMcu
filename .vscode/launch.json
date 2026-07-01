@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug J-Link Mesh",
+            "name": "Debug J-Link",
             "cwd": "${workspaceRoot}",
             "executable": "${workspaceRoot}/build/PllMcud.elf",
             "request": "launch",
@@ -14,8 +14,8 @@
             "serverpath": "JLinkGDBServerCL.exe",
             "servertype": "jlink",
             "interface": "swd",
-            "device": "GD32E103CB",            
-            "svdFile": "${workspaceRoot}/Drivers/Device/GD/SVD/GD32E10x.svd",
+            "device": "STM32F051K8",            
+            "svdFile": "${workspaceRoot}/Drivers/CMSIS/Device/ST/STM32F0xx/STM32F0x1.svd",
             
             "rtos": "FreeRTOS",
             "rttConfig": {

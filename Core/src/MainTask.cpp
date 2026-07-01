@@ -13,7 +13,12 @@
 #include "config.h"
 #include <semphr.h>
 
-#define MODNAME "[main] "
+#include "log_levels.h"
+#undef LOG_LOCAL_LEVEL
+#define LOG_LOCAL_LEVEL LOG_TAG_MAIN_LEVEL
+#include <rtt_log.h>
+static const char *TAG = "   MAIN";
+
 
 static MainTask mt;
 TaskHandle_t MainTaskHandle = nullptr;
@@ -35,10 +40,14 @@ static void SpiTransmit(uint8_t data);
 
 void MainTask_(void *pvParameters) {
     TickType_t last_tick = xTaskGetTickCount();
+    RTT_LOGI(TAG, "MainTask started");
 
     uint32_t ulNotifyValue = 0;
+
+    int counter = 0;
     for (;;) {
-        xTaskNotifyWait(0, UINT32_MAX, &ulNotifyValue, 1);
+        RTT_LOGD(TAG, "MainTask loop %d", counter++);
+        vTaskDelay(1000);
     }
 }
 

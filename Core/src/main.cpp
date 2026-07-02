@@ -121,6 +121,31 @@ void SystemClock_Config() {
 static void MX_GPIO_Init() {
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+
+    // Power down the LMX until explicitly enabled
+    LL_GPIO_ResetOutputPin(LMX_ENABLE_PORT, LMX_ENABLE_PIN);
+
+    /**LMX_LOCK_PIN - lock detect input*/
+    GPIO_InitStruct.Pin = LMX_LOCK_PIN;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(LMX_LOCK_PORT, &GPIO_InitStruct);
+
+    /**LMX_ENABLE_PIN - Low: Power down, High: Active*/
+    GPIO_InitStruct.Pin = LMX_ENABLE_PIN;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(LMX_ENABLE_PORT, &GPIO_InitStruct);
+}
+
+static void MX_USART_Init() {
+LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+    __HAL_RCC_USART1_CLK_ENABLE();
+
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
 
     /**USART1 GPIO Configuration
@@ -142,10 +167,6 @@ static void MX_GPIO_Init() {
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
     GPIO_InitStruct.Alternate = SERIAL_RX_GPIO_AF;
     LL_GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStruct);
-}
-
-static void MX_USART_Init() {
-    __HAL_RCC_USART1_CLK_ENABLE();
 
     LL_USART_SetTransferDirection(SERIAL_UART, LL_USART_DIRECTION_TX_RX);
     LL_USART_ConfigCharacter(SERIAL_UART, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
@@ -174,34 +195,34 @@ static void MX_SPI_Init() {
     PA6   ------> SPI1_MISO
     PA7   ------> SPI1_MOSI
     */
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_5;
+    GPIO_InitStruct.Pin = SPI1_SCK_PIN;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
-    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_InitStruct.Alternate = SPI1_GPIO_AF;
+    LL_GPIO_Init(SPI1_SCK_PORT, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_6;
+    GPIO_InitStruct.Pin = SPI1_MISO_PIN;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
-    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_InitStruct.Alternate = SPI1_GPIO_AF;
+    LL_GPIO_Init(SPI1_MISO_PORT, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_7;
+    GPIO_InitStruct.Pin = SPI1_MOSI_PIN;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
-    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_InitStruct.Alternate = SPI1_GPIO_AF;
+    LL_GPIO_Init(SPI1_MOSI_PORT, &GPIO_InitStruct);
 
     /* SPI1 parameter configuration*/
     SPI_InitStruct.TransferDirection = LL_SPI_FULL_DUPLEX;
     SPI_InitStruct.Mode = LL_SPI_MODE_MASTER;
-    SPI_InitStruct.DataWidth = LL_SPI_DATAWIDTH_4BIT;
+    SPI_InitStruct.DataWidth = LL_SPI_DATAWIDTH_8BIT;
     SPI_InitStruct.ClockPolarity = LL_SPI_POLARITY_LOW;
     SPI_InitStruct.ClockPhase = LL_SPI_PHASE_1EDGE;
     SPI_InitStruct.NSS = LL_SPI_NSS_SOFT;
@@ -212,6 +233,9 @@ static void MX_SPI_Init() {
     LL_SPI_Init(SPI1, &SPI_InitStruct);
     LL_SPI_SetStandard(SPI1, LL_SPI_PROTOCOL_MOTOROLA);
     LL_SPI_EnableNSSPulseMgt(SPI1);
+    // Byte-wise polling needs RXNE to fire after every single byte, not every 16 bits
+    LL_SPI_SetRxFIFOThreshold(SPI1, LL_SPI_RX_FIFO_TH_QUARTER);
+    LL_SPI_Enable(SPI1);
 }
 
 void Error_Handler() {

@@ -41,7 +41,6 @@ namespace rtos_static {
 
 namespace st = rtos_static::maintask;
 
-static void SpiTransmit(uint8_t data);
 static char cInputBuffer[configCOMMAND_INT_MAX_OUTPUT_SIZE];
 static char cOutputBuffer[configCOMMAND_INT_MAX_OUTPUT_SIZE];
 
@@ -78,15 +77,15 @@ static void WriteRegister(uint8_t reg, uint32_t value) {
         static_cast<uint8_t>(value & 0xFF)
     };
 
-    while (SPI1->SR & SPI_SR_BSY) {}
+    while (LL_SPI_IsActiveFlag_BSY(SPI1)) {}
     LMX_CS_PORT->BRR = LMX_CS_PIN;
     for (uint8_t byte : bytes) {
-        SPI1->DR = byte;
-        while (!(SPI1->SR & SPI_SR_TXE)) {}
-        while (!(SPI1->SR & SPI_SR_RXNE)) {}
-        (void) *reinterpret_cast<volatile uint8_t *>(&SPI1->DR);
+        LL_SPI_TransmitData8(SPI1, byte);
+        while (!(LL_SPI_IsActiveFlag_TXE(SPI1))) {}
+        while (!(LL_SPI_IsActiveFlag_RXNE(SPI1))) {}
+        LL_SPI_ReceiveData8(SPI1);
     }
-    while (SPI1->SR & SPI_SR_BSY) {}
+    while (LL_SPI_IsActiveFlag_BSY(SPI1)) {}
     LMX_CS_PORT->BSRR = LMX_CS_PIN;
 }
 
@@ -146,15 +145,15 @@ static uint32_t ReadRegister(uint8_t reg) {
         0x00
     };
 
-    while (SPI1->SR & SPI_SR_BSY) {}
+    while (LL_SPI_IsActiveFlag_BSY(SPI1)) {}
     LMX_CS_PORT->BRR = LMX_CS_PIN;
     for (uint8_t i = 0; i < 3; ++i) {
-        SPI1->DR = tx[i];
-        while (!(SPI1->SR & SPI_SR_TXE)) {}
-        while (!(SPI1->SR & SPI_SR_RXNE)) {}
-        rx[i] = static_cast<uint8_t>(SPI1->DR);
+        LL_SPI_TransmitData8(SPI1, tx[i]);
+        while (!(LL_SPI_IsActiveFlag_TXE(SPI1))) {}
+        while (!(LL_SPI_IsActiveFlag_RXNE(SPI1))) {}
+        rx[i] = LL_SPI_ReceiveData8(SPI1);
     }
-    while (SPI1->SR & SPI_SR_BSY) {}
+    while (LL_SPI_IsActiveFlag_BSY(SPI1)) {}
     LMX_CS_PORT->BSRR = LMX_CS_PIN;
 
     return (static_cast<uint32_t>(rx[1]) << 8) | rx[2];
@@ -260,7 +259,7 @@ static const CLI_Command_Definition_t xLockCommand = {
 };
 
 void MainTask(void *pvParameters) {
-    TickType_t last_tick = xTaskGetTickCount();
+UNUSED(pvParameters);
     RTT_LOGI(TAG, "MainTask started");
     BaseType_t xMore;
 
@@ -337,18 +336,6 @@ void UART_Printf(const char *format, ...) {
         LL_USART_TransmitData8(SERIAL_UART, static_cast<uint8_t>(buffer[i]));
     }
 }
-
-static void SpiTransmit(uint8_t data) {
-    // Ждем пока флаг BSY в 1, SPI занят
-    while (SPI1->SR & SPI_SR_BSY) {}
-    LMX_CS_PORT->BRR = LMX_CS_PIN;
-    SPI1->DR = data;
-    while (!(SPI1->SR & SPI_SR_TXE)) {}
-    // Ждем пока не опустится флаг BSY
-    while (SPI1->SR & SPI_SR_BSY) {}
-    LMX_CS_PORT->BSRR = LMX_CS_PIN;
-}
-
 
 extern "C" void USART1_IRQHandler(void) {
 BaseType_t xHigherPriorityTaskWoken = pdFALSE;

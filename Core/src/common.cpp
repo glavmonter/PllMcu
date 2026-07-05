@@ -29,29 +29,6 @@ volatile uint32_t cnt = us * 8;
 }
 
 
-
-void asort(etl::ivector<uint16_t> &v) {
-int i, j;
-bool swapped;
-int n = v.size();
-
-    for (i = 0; i < n - 1; i++) {
-        swapped = false;
-        for (j = 0; j < n - i - 1; j++) {
-            if (v[j] > v[j+1]) {
-                uint16_t tmp = v[j];
-                v[j] = v[j+1];
-                v[j+1] = tmp;
-                swapped = true;
-            }
-        }
-        if (swapped == false) {
-            break;
-        }
-    }
-}
-
-
 char *_float_to_char(float x, char *p) {
     char *s = p + FLOAT_BUFFER_SIZE - 1; // go to end of buffer
     uint16_t decimals;  // variable to store the decimals

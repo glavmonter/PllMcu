@@ -5,9 +5,6 @@
 #include "stm32f0xx_ll_usart.h"
 #include "MainTask.h"
 #include "SEGGER_RTT.h"
-#include "etl/callback_timer.h"
-#include "etl/function.h"
-#include "etl/histogram.h"
 #include "hardware.h"
 #include "common.h"
 #include "config.h"
@@ -31,7 +28,7 @@ uint8_t ucCommandLineCharsQueueBuffer[128];
 
 namespace rtos_static {
     namespace maintask {
-        constexpr size_t TaskStackSize = configMINIMAL_STACK_SIZE * 3;
+        constexpr size_t TaskStackSize = configMINIMAL_STACK_SIZE * 4;
         constexpr BaseType_t TaskPriority = configMAX_PRIORITIES - 1;
 
         static StackType_t ucTaskStack[TaskStackSize];

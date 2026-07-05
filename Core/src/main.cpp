@@ -7,7 +7,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "MainTask.h"
-#include "etl/vector.h"
 #include "config.h"
 #include "hardware.h"
 #include "templates.h"
@@ -190,6 +189,15 @@ static void MX_SPI_Init() {
     LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_SPI1);
 
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+
+    LL_GPIO_SetOutputPin(LMX_CS_PORT, LMX_CS_PIN);
+    GPIO_InitStruct.Pin = LMX_CS_PIN;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(LMX_CS_PORT, &GPIO_InitStruct);
+
     /**SPI1 GPIO Configuration
      PA5   ------> SPI1_SCK
     PA6   ------> SPI1_MISO
@@ -226,7 +234,7 @@ static void MX_SPI_Init() {
     SPI_InitStruct.ClockPolarity = LL_SPI_POLARITY_LOW;
     SPI_InitStruct.ClockPhase = LL_SPI_PHASE_1EDGE;
     SPI_InitStruct.NSS = LL_SPI_NSS_SOFT;
-    SPI_InitStruct.BaudRate = LL_SPI_BAUDRATEPRESCALER_DIV4;
+    SPI_InitStruct.BaudRate = LL_SPI_BAUDRATEPRESCALER_DIV32;
     SPI_InitStruct.BitOrder = LL_SPI_MSB_FIRST;
     SPI_InitStruct.CRCCalculation = LL_SPI_CRCCALCULATION_DISABLE;
     SPI_InitStruct.CRCPoly = 7;

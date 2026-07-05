@@ -6,7 +6,6 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/toolchain-arm-none-e
 list(APPEND CMAKE_MODULE_PATH cmake)
 include(cmake/functions.cmake)
 include(cmake/GetGitVersion.cmake)
-# include(cmake/macro-add-python.cmake)
 
 
 SET(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/STM32F051XX_FLASH.ld")
@@ -89,7 +88,7 @@ include_directories(${RINGBUFFER_INC})
 include_directories(${MIDDLEWARES_INC})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
-set(FREERTOS_HEAP_SIZE_KB  1)
+set(FREERTOS_HEAP_SIZE_KB  2)
 
 set(COMMON_DEFINITIONS -DSTM32F051x8 -DUSE_HAL_DRIVER -DUSE_FULL_LL_DRIVER)
 add_definitions(${COMMON_DEFINITIONS})

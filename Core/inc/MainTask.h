@@ -6,9 +6,6 @@
 #include <task.h>
 #include <queue.h>
 #include "SEGGER_RTT.h"
-#include "etl/callback_timer.h"
-#include "etl/function.h"
-#include "etl/bitset.h"
 #include "hardware.h"
 
 void StartMainTask();

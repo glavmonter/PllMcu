@@ -5,5 +5,4 @@ cmake-build*
 build/
 .idea/
 PDF/
-Tools/
 CubeMX/

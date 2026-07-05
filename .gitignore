@@ -1,0 +1,8 @@
+    .settings/
+*.launch
+.mxproject
+cmake-build*
+build/
+.idea/
+PDF/
+CubeMX/

@@ -1,0 +1,21 @@
+/**
+  * \file    version.h
+  * \version V2.0.0
+  * \brief Версия программного обеспечения
+  */
+
+#ifndef VERSION_APP_H_IN
+#define VERSION_APP_H_IN
+
+#define VERSION(MAJOR, MINOR, PATCH)    ((MAJOR)*10000 + (MINOR)*100 + (PATCH))
+
+
+#define APP_VERSION_MAJOR   (@VERSION_MAJOR@)         ///< Major
+#define APP_VERSION_MINOR   (@VERSION_MINOR@)         ///< Minor
+#define APP_VERSION_PATCH   (@VERSION_PATCH@)         ///< Patch
+
+#define APP_VERSION_DISPLAY     "@APP_VERSION_DISPLAY@"
+#define APP_VERSION             VERSION(APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH)
+
+
+#endif // VERSION_APP_H_IN
